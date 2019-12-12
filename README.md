@@ -39,5 +39,5 @@ Generate inventory
 ```
 Provision the infrastructure
 ```
-./infra-provisioning-base.sh
+./infra-provisioning.sh
 ```
