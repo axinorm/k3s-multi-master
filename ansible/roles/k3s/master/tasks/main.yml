@@ -1,0 +1,52 @@
+---
+
+- name: Copy K3s service file
+  register: k3s_service
+  template:
+    src: "k3s.service.j2"
+    dest: "{{ systemd_dir }}/k3s.service"
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Enable and check K3s service
+  systemd:
+    name: k3s
+    daemon_reload: yes
+    state: restarted
+    enabled: yes
+
+- name: Create directory .kube
+  file:
+    path: /home/{{ ansible_user }}/.kube
+    state: directory
+    owner: "{{ ansible_user }}"
+
+- name: Wait for kubectl config file
+  wait_for:
+    path: /etc/rancher/k3s/k3s.yaml
+
+- name: Copy config file to user home directory
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /home/{{ ansible_user }}/.kube/config
+    remote_src: yes
+    owner: "{{ ansible_user }}"
+
+- name: Replace https://127.0.0.1:6443 by https://master-pi:6443
+  replace:
+    path: /home/{{ ansible_user }}/.kube/config
+    regexp: "https://127.0.0.1:6443"
+    replace: "https://{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:6443"
+
+- name: Create kubectl symlink
+  file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/kubectl
+    state: link
+
+- name: Create crictl symlink
+  file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/crictl
+    state: link

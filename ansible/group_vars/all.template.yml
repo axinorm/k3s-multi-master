@@ -1,0 +1,7 @@
+# System
+ansible_user: admin
+systemd_dir: /etc/systemd/system
+master_ip: "{{ hostvars[groups['masters'][0]]['ansible_host'] | default(groups['masters'][0]) }}"
+
+# k3s
+k3s_version: v1.0.0

@@ -1,0 +1,26 @@
+- name: Download kubectl
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/kubectl
+    mode: 0755
+    force: yes
+  become: yes
+
+- name: Check if kube config is set
+  stat:
+    path: /home/{{ ansible_user }}/.kube/config
+  register: kube_config_file_details
+
+- name: Create directory .kube
+  file:
+    path: /home/{{ ansible_user }}/.kube
+    state: directory
+    owner: "{{ ansible_user }}"
+  when: not kube_config_file_details.stat.exists
+
+- name: Create kubectl
+  copy:
+    dest: /home/{{ ansible_user }}/.kube/config
+    content: |
+      {{ hostvars[groups['masters'][0]]['kubectl_config'] }}
+  when: not kube_config_file_details.stat.exists

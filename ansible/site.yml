@@ -1,0 +1,26 @@
+- hosts: k3s-cluster
+  gather_facts: yes
+  become: yes
+  roles:
+    - { role: k3s/download }
+    - { role: k3s/prereq }
+
+- hosts: masters[0]
+  become: yes
+  roles:
+    - { role: k3s/cluster-init }
+
+- hosts: masters:!masters[0]
+  become: yes
+  roles:
+    - { role: k3s/master }
+
+- hosts: nodes
+  become: yes
+  roles:
+    - { role: k3s/node }
+
+- hosts: bastions
+  become: no
+  roles:
+    - { role: k3s/bastion }
